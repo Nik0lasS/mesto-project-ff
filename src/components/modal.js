@@ -1,5 +1,6 @@
-export const closeModal = () => {
-  document.querySelector('.popup_is-opened').classList.remove('popup_is-opened');
+export const closeModal = (modal) => {
+  modal.classList.remove('popup_is-opened');
+  document.removeEventListener('keydown', handleEscClose);
 };
 
 const popupsContainerEl = document.getElementById('popupsContainer');
@@ -9,21 +10,19 @@ popupsContainerEl.addEventListener('click', (evt) => {
 
   if(targetClassesList.contains('popup_is-opened')
     || targetClassesList.contains('popup__close')){
-    closeModal();
+    const openedPopup = popupsContainerEl.querySelector('.popup_is-opened');
+    closeModal(openedPopup);
   }
 });
-document.addEventListener('keydown', (evt) => {
+
+const handleEscClose = (evt) => {
   if (evt.key === 'Escape') {
     const openedPopup = document.querySelector('.popup_is-opened');
-
-    if(openedPopup){
-      closeModal();
-      return;
-    }
-
+    closeModal(openedPopup);
   }
-});
+};
 
 export const openModal = (modal) => {
   modal.classList.add('popup_is-opened');
+  document.addEventListener('keydown', handleEscClose);
 };
