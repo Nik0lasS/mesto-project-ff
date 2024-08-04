@@ -10,7 +10,7 @@
 
 import '../styles/index.css';
 import { initialCards, createCard, deleteCard, likeCard } from './cards.js';
-import { openModal, closeModal } from './modal.js';
+import { openModal, closeModal, setPopupListeners } from './modal.js';
 
 const placeList = document.querySelector('.places__list');
 const popupImg = document.querySelector('.popup_type_image');
@@ -29,6 +29,7 @@ const addCardForm = document.forms.newPlace;
 const cardName = addCardForm.querySelector('.popup__input_type_card-name');
 const cardLink = addCardForm.querySelector('.popup__input_type_url');
 
+setPopupListeners();
 
 export function processImgClick(event) {
   imgInPopup.src = event.target.src;
