@@ -11,6 +11,7 @@
 import '../styles/index.css';
 import { initialCards, createCard, deleteCard, likeCard } from './cards.js';
 import { openModal, closeModal, setPopupListeners } from './modal.js';
+import { enableValidation, clearValidation } from './validation.js';
 
 const placeList = document.querySelector('.places__list');
 const popupImg = document.querySelector('.popup_type_image');
@@ -48,9 +49,11 @@ profileEdit.addEventListener('click', () => {
   openModal(popupEdit);
   jobInput.value = jobValue.textContent;
   nameInput.value = nameValue.textContent;
+  clearValidation(editProfileForm);
 });
 profileAdd.addEventListener('click', () => {
   openModal(popupAdd);
+
 });
 
 // Функция редактирования профиля
@@ -77,6 +80,17 @@ function handleCardFormSubmit(evt) {
   placeList.prepend(newCard);
   addCardForm.reset();
   closeModal();
+  clearValidation(addCardForm);
 }
 
 addCardForm.addEventListener('submit', handleCardFormSubmit);
+
+
+enableValidation({
+  formElement: '.popup__form',
+  inputElement: '.popup__input',
+  buttonElement: '.popup__button',
+  inactiveButtonClass: 'form__submit_inactive',
+  inputErrorClass: 'popup__input_type_error',
+  errorClass: 'popup__input_error_active',
+});
