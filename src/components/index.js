@@ -9,10 +9,12 @@
 // @todo: Вывести карточки на страницу
 
 import '../styles/index.css';
-import { initialCards, createCard, deleteCard, likeCard } from './cards.js';
+import { createCard, deleteCard, likeCard } from './cards.js';
 import { openModal, closeModal, setPopupListeners } from './modal.js';
 import { enableValidation, clearValidation } from './validation.js';
+import { getInitialCards, getUserInfo, setUserInfo, updateUserInfo, addCard, updateUserAvatar } from './api.js';
 
+const profile = document.querySelector('.profile');
 const placeList = document.querySelector('.places__list');
 const popupImg = document.querySelector('.popup_type_image');
 const imgInPopup = popupImg.querySelector('.popup__image');
@@ -21,34 +23,38 @@ const profileEdit = document.querySelector('.profile__edit-button');
 const profileAdd = document.querySelector('.profile__add-button');
 const popupEdit = document.querySelector('.popup_type_edit');
 const popupAdd = document.querySelector('.popup_type_new-card');
+const popupAvatar = document.querySelector('.popup_type_user_avatar');
+const updateAvatarForm = document.forms.editAvatar;
+const profileAvatar = profile.querySelector('.profile__image');
+const profileAvatarInput = popupAvatar.querySelector('.popup__input_type_user_avatar');
 const editProfileForm = document.forms.editProfile;
-const nameInput = editProfileForm.querySelector('.popup__input_type_name');
-const jobInput = editProfileForm.querySelector('.popup__input_type_description');
-const nameValue = document.querySelector('.profile__title');
-const jobValue = document.querySelector('.profile__description');
+const profileInput = { 
+  name: editProfileForm.querySelector('.popup__input_type_name'),
+  about: editProfileForm.querySelector('.popup__input_type_description'),
+};
+const profileValue = {
+  name: profile.querySelector('.profile__title'),
+  about: profile.querySelector('.profile__description'),
+};
 const addCardForm = document.forms.newPlace;
-const cardName = addCardForm.querySelector('.popup__input_type_card-name');
-const cardLink = addCardForm.querySelector('.popup__input_type_url');
+const cardData = {
+  name: addCardForm.querySelector('.popup__input_type_card-name'),
+  link: addCardForm.querySelector('.popup__input_type_url'),
+};
 
 setPopupListeners();
 
-export function processImgClick(event) {
-  imgInPopup.src = event.target.src;
-  imgInPopup.alt = event.target.alt;
-  imgInPopupDescription.textContent = event.target.alt;
+export function processImgClick(e) {
+  imgInPopup.src = e.target.src;
+  imgInPopup.alt = e.target.alt;
+  imgInPopupDescription.textContent = e.target.alt;
   openModal(popupImg);
 }
 
-initialCards.forEach((item) => {
-  const newCard = createCard(item, deleteCard, likeCard, processImgClick);
-  placeList.append(newCard);
-
-});
-
 profileEdit.addEventListener('click', () => {
   openModal(popupEdit);
-  jobInput.value = jobValue.textContent;
-  nameInput.value = nameValue.textContent;
+  profileInput.about.value = profileValue.about.textContent;
+  profileInput.name.value = profileValue.name.textContent;
   clearValidation(editProfileForm);
 });
 profileAdd.addEventListener('click', () => {
@@ -56,11 +62,38 @@ profileAdd.addEventListener('click', () => {
 
 });
 
+profileAvatar.addEventListener('click', () => {
+  openModal(popupAvatar);
+});
+
+// Функция редактирования аватара
+function handleAvatarFormSubmit(e) {
+  e.preventDefault();
+  updateAvatarForm.querySelector('.popup__button').textContent = 'Сохранение...';
+  const link = profileAvatarInput.value;
+  updateUserAvatar(link)
+    .catch((err) => {
+      console.log(err);
+    });
+  updateAvatarForm.querySelector('.popup__button').textContent = 'Сохранить';
+  closeModal();
+  clearValidation(editProfileForm);
+}
+
+updateAvatarForm.addEventListener('submit', handleAvatarFormSubmit);
+
+
 // Функция редактирования профиля
-function handleProfileFormSubmit(evt) {
-    evt.preventDefault(); 
-    nameValue.textContent = nameInput.value;
-    jobValue.textContent = jobInput.value;
+function handleProfileFormSubmit(e) {
+    e.preventDefault(); 
+    editProfileForm.querySelector('.popup__button').textContent = 'Сохранение...';
+    profileValue.name.textContent = profileInput.name.value;
+    profileValue.about.textContent = profileInput.about.value;
+    updateUserInfo(profileInput)
+      .catch((err) => {
+        console.log(err);
+      });
+    editProfileForm.querySelector('.popup__button').textContent = 'Сохранить';
     closeModal();
 }
 
@@ -68,17 +101,23 @@ editProfileForm.addEventListener('submit', handleProfileFormSubmit);
 
 
 // Функция добавления карточки
-function handleCardFormSubmit(evt) {
-  evt.preventDefault(); 
+function handleCardFormSubmit(e) {
+  e.preventDefault(); 
+  addCardForm.querySelector('.popup__button').textContent = 'Сохранение...';
   const item = {
     name: '',
     link: '',
   };
-  item.name = cardName.value;
-  item.link = cardLink.value;
-  const newCard = createCard(item, deleteCard, likeCard, processImgClick);
-  placeList.prepend(newCard);
+  item.name = cardData.name.value;
+  item.link = cardData.link.value;
+  addCard(item)
+    .catch((err) => {
+      console.log(err);
+    });
+  //const newCard = createCard(item, deleteCard, likeCard, processImgClick);
+  //placeList.prepend(newCard);
   addCardForm.reset();
+  addCardForm.querySelector('.popup__button').textContent = 'Сохранить';
   closeModal();
   clearValidation(addCardForm);
 }
@@ -94,3 +133,34 @@ enableValidation({
   inputErrorClass: 'popup__input_type_error',
   errorClass: 'popup__input_error_active',
 });
+
+getUserInfo()
+  .then((result) => {
+    setUserInfo(result);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+getInitialCards()
+  .then((result) => {
+    result.forEach((item) => {
+      const newCard = createCard(item, deleteCard, likeCard, processImgClick);
+      placeList.append(newCard);
+    })
+  })
+  .catch((err) => {
+      console.log(err);
+    });
+
+
+// Функция отображения загрузки  
+function renderLoading(isLoading) {
+  if (isLoading) {
+    document.querySelector('.popup__button').textContent = 'Сохранение...';
+  } else {
+    document.querySelector('.popup__button').textContent = 'Сохранить'; 
+  }
+}
+
+console.log(document.querySelector('.popup__button').textContent);
