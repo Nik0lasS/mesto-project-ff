@@ -41,6 +41,7 @@ const cardData = {
   name: addCardForm.querySelector('.popup__input_type_card-name'),
   link: addCardForm.querySelector('.popup__input_type_url'),
 };
+export let userId = "";
 
 setPopupListeners();
 
@@ -72,12 +73,16 @@ function handleAvatarFormSubmit(e) {
   updateAvatarForm.querySelector('.popup__button').textContent = 'Сохранение...';
   const link = profileAvatarInput.value;
   updateUserAvatar(link)
+    .then(() => {
+      closeModal();
+      profile.querySelector('.profile__image').style = `background-image: url(${profileAvatarInput.value});`;
+    })
     .catch((err) => {
       console.log(err);
-    });
-  updateAvatarForm.querySelector('.popup__button').textContent = 'Сохранить';
-  closeModal();
-  clearValidation(editProfileForm, validationConfig);
+    })
+    .finally(() => {
+      updateAvatarForm.querySelector('.popup__button').textContent = 'Сохранить';
+    })
 }
 
 updateAvatarForm.addEventListener('submit', handleAvatarFormSubmit);
@@ -87,14 +92,18 @@ updateAvatarForm.addEventListener('submit', handleAvatarFormSubmit);
 function handleProfileFormSubmit(e) {
     e.preventDefault(); 
     editProfileForm.querySelector('.popup__button').textContent = 'Сохранение...';
-    profileValue.name.textContent = profileInput.name.value;
-    profileValue.about.textContent = profileInput.about.value;
     updateUserInfo(profileInput)
+      .then(() => {
+        profileValue.name.textContent = profileInput.name.value;
+        profileValue.about.textContent = profileInput.about.value;
+        closeModal();
+      })
       .catch((err) => {
         console.log(err);
+      })
+      .finally(() => {
+        editProfileForm.querySelector('.popup__button').textContent = 'Сохранить';
       });
-    editProfileForm.querySelector('.popup__button').textContent = 'Сохранить';
-    closeModal();
 }
 
 editProfileForm.addEventListener('submit', handleProfileFormSubmit);
@@ -107,19 +116,31 @@ function handleCardFormSubmit(e) {
   const item = {
     name: '',
     link: '',
+    owner : {
+      _id: '',
+    },
+    likes: [],
+    _id: '',
   };
   item.name = cardData.name.value;
   item.link = cardData.link.value;
+  item.owner._id = userId;
+
   addCard(item)
-    .catch((err) => {
-      console.log(err);
-    });
-  //const newCard = createCard(item, deleteCard, likeCard, processImgClick);
-  //placeList.prepend(newCard);
-  addCardForm.reset();
-  addCardForm.querySelector('.popup__button').textContent = 'Сохранить';
-  closeModal();
-  clearValidation(addCardForm, validationConfig);
+  .then((res) => {
+    item._id = res._id;
+    const newCard = createCard(item, deleteCard, likeCard, processImgClick);
+    placeList.prepend(newCard);
+    addCardForm.reset();
+    closeModal();
+    clearValidation(addCardForm, validationConfig);
+  })
+  .catch((err) => {
+    console.log(err);
+  })
+  .finally(() => {
+    editProfileForm.querySelector('.popup__button').textContent = 'Сохранить';
+  });
 }
 
 addCardForm.addEventListener('submit', handleCardFormSubmit);
@@ -142,33 +163,17 @@ const setUserInfo = (data) => {
   profile.querySelector('.profile__image').style = `background-image: url(${data.avatar});`;
 }
 
-getUserInfo()
-  .then((result) => {
-    setUserInfo(result);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
-getInitialCards()
-  .then((result) => {
-    result.forEach((item) => {
+Promise.all([getUserInfo(), getInitialCards()])
+  .then(data => {
+    const userInfo = data[0];
+    const cards = data[1];
+    setUserInfo(userInfo);
+    userId = userInfo._id;
+    cards.forEach((item) => {
       const newCard = createCard(item, deleteCard, likeCard, processImgClick);
       placeList.append(newCard);
     })
   })
   .catch((err) => {
-      console.log(err);
-    });
-
-
-// Функция отображения загрузки  
-function renderLoading(isLoading) {
-  if (isLoading) {
-    document.querySelector('.popup__button').textContent = 'Сохранение...';
-  } else {
-    document.querySelector('.popup__button').textContent = 'Сохранить'; 
-  }
-}
-
-console.log(document.querySelector('.popup__button').textContent);
+    console.log(err);
+  });

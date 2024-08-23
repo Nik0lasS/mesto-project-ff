@@ -1,4 +1,5 @@
 import { deleteCards, likeCards, dislikeCards } from './api';
+import { userId } from './index';
 
 export function createCard(item, deleteCard, likeCard, processImgClick) {
   const template = document.querySelector('#card-template').content;
@@ -8,7 +9,6 @@ export function createCard(item, deleteCard, likeCard, processImgClick) {
   const cardImg = card.querySelector('.card__image');
   const cardLikeCounter = card.querySelector('.card__like-counter');
   const cardOwner = item.owner._id;
-  const userId = 'df0af4163426169488ebfcd5';
   const cardId = card.querySelector('.card');
 
   card.querySelector('.card__title').textContent = item.name;
@@ -34,22 +34,30 @@ export function createCard(item, deleteCard, likeCard, processImgClick) {
 };
 
 export function deleteCard(e) {
-  deleteCards((e.target.closest('.card')._id));
-  e.target.closest('.card').remove();
+  deleteCards((e.target.closest('.card')._id))
+    .then(() => {
+      e.target.closest('.card').remove();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
 };
 
 export function likeCard(e) {
-  e.target.classList.toggle('card__like-button_is-active');
   const cardLikeCounter = e.target.closest('.card').querySelector('.card__like-counter');
-  if (e.target.classList.contains('card__like-button_is-active')) {
-  likeCards((e.target.closest('.card')._id))
-    .then ((result) => {
-      cardLikeCounter.textContent = result.likes.length;
-    });
+  
+  if (!e.target.classList.contains('card__like-button_is-active')) {
+    likeCards((e.target.closest('.card')._id))
+      .then ((result) => {
+        cardLikeCounter.textContent = result.likes.length;
+        e.target.classList.toggle('card__like-button_is-active');
+      });
   } else {
     dislikeCards((e.target.closest('.card')._id))
-    .then ((result) => {
-      cardLikeCounter.textContent = result.likes.length;
-    });
+      .then ((result) => {
+        cardLikeCounter.textContent = result.likes.length;
+        e.target.classList.toggle('card__like-button_is-active');
+      });
   }
-}
+};
