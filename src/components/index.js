@@ -12,7 +12,7 @@ import '../styles/index.css';
 import { createCard, deleteCard, likeCard } from './cards.js';
 import { openModal, closeModal, setPopupListeners } from './modal.js';
 import { enableValidation, clearValidation } from './validation.js';
-import { getInitialCards, getUserInfo, setUserInfo, updateUserInfo, addCard, updateUserAvatar } from './api.js';
+import { getInitialCards, getUserInfo, updateUserInfo, addCard, updateUserAvatar } from './api.js';
 
 const profile = document.querySelector('.profile');
 const placeList = document.querySelector('.places__list');
@@ -55,7 +55,7 @@ profileEdit.addEventListener('click', () => {
   openModal(popupEdit);
   profileInput.about.value = profileValue.about.textContent;
   profileInput.name.value = profileValue.name.textContent;
-  clearValidation(editProfileForm);
+  clearValidation(editProfileForm, validationConfig);
 });
 profileAdd.addEventListener('click', () => {
   openModal(popupAdd);
@@ -77,7 +77,7 @@ function handleAvatarFormSubmit(e) {
     });
   updateAvatarForm.querySelector('.popup__button').textContent = 'Сохранить';
   closeModal();
-  clearValidation(editProfileForm);
+  clearValidation(editProfileForm, validationConfig);
 }
 
 updateAvatarForm.addEventListener('submit', handleAvatarFormSubmit);
@@ -119,20 +119,28 @@ function handleCardFormSubmit(e) {
   addCardForm.reset();
   addCardForm.querySelector('.popup__button').textContent = 'Сохранить';
   closeModal();
-  clearValidation(addCardForm);
+  clearValidation(addCardForm, validationConfig);
 }
 
 addCardForm.addEventListener('submit', handleCardFormSubmit);
 
 
-enableValidation({
+export const validationConfig = {
   formElement: '.popup__form',
   inputElement: '.popup__input',
   buttonElement: '.popup__button',
   inactiveButtonClass: 'form__submit_inactive',
   inputErrorClass: 'popup__input_type_error',
   errorClass: 'popup__input_error_active',
-});
+};
+
+enableValidation (validationConfig);
+
+const setUserInfo = (data) => {
+  profile.querySelector('.profile__title').textContent = data.name;
+  profile.querySelector('.profile__description').textContent = data.about;
+  profile.querySelector('.profile__image').style = `background-image: url(${data.avatar});`;
+}
 
 getUserInfo()
   .then((result) => {
