@@ -41,11 +41,11 @@ const cardData = {
   name: addCardForm.querySelector('.popup__input_type_card-name'),
   link: addCardForm.querySelector('.popup__input_type_url'),
 };
-export let userId = "";
+let userId = "";
 
 setPopupListeners();
 
-export function processImgClick(e) {
+function processImgClick(e) {
   imgInPopup.src = e.target.src;
   imgInPopup.alt = e.target.alt;
   imgInPopupDescription.textContent = e.target.alt;
@@ -129,7 +129,7 @@ function handleCardFormSubmit(e) {
   addCard(item)
   .then((res) => {
     item._id = res._id;
-    const newCard = createCard(item, deleteCard, likeCard, processImgClick);
+    const newCard = createCard(item, deleteCard, likeCard, processImgClick, userId);
     placeList.prepend(newCard);
     addCardForm.reset();
     closeModal();
@@ -139,14 +139,13 @@ function handleCardFormSubmit(e) {
     console.log(err);
   })
   .finally(() => {
-    editProfileForm.querySelector('.popup__button').textContent = 'Сохранить';
+    addCardForm.querySelector('.popup__button').textContent = 'Сохранить';
   });
 }
 
 addCardForm.addEventListener('submit', handleCardFormSubmit);
 
-
-export const validationConfig = {
+const validationConfig = {
   formElement: '.popup__form',
   inputElement: '.popup__input',
   buttonElement: '.popup__button',
@@ -170,7 +169,7 @@ Promise.all([getUserInfo(), getInitialCards()])
     setUserInfo(userInfo);
     userId = userInfo._id;
     cards.forEach((item) => {
-      const newCard = createCard(item, deleteCard, likeCard, processImgClick);
+      const newCard = createCard(item, deleteCard, likeCard, processImgClick, userId);  
       placeList.append(newCard);
     })
   })

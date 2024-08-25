@@ -1,7 +1,6 @@
 import { deleteCards, likeCards, dislikeCards } from './api';
-import { userId } from './index';
 
-export function createCard(item, deleteCard, likeCard, processImgClick) {
+export function createCard(item, deleteCard, likeCard, processImgClick, userId) {
   const template = document.querySelector('#card-template').content;
   const card = template.cloneNode(true);
   const deleteButton = card.querySelector('.card__delete-button');
